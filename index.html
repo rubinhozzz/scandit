@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Scandit Web SDK</title>
+
+    <!--
+        Add the library, as explained on http://docs.scandit.com/stable/web/index.html
+    -->
+    <script src="https://unpkg.com/scandit-sdk"></script>
+    <!-- or -->
+    <!-- <script src="https://cdn.jsdelivr.net/npm/scandit-sdk"></script> -->
+    <!-- or -->
+    <!-- <script src="https://unpkg.com/scandit-sdk@1.0.5"></script> -->
+    <!-- or -->
+    <!-- <script src="https://cdn.jsdelivr.net/npm/scandit-sdk@1.0.5"></script> -->
+    <!-- or -->
+    <!-- <script src="/node_modules/scandit-sdk/build/browser/index.min.js"></script> -->
+
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: black;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            align-items: center;
+            font-size: 3vh;
+            font-family: 'Open Sans', sans-serif;
+            width: 100vw;
+            height: 100vh;
+        }
+        #scandit-barcode-picker {
+            width: 100%;
+            height: 100%;
+            max-height: 70vh;
+        }
+        #scandit-barcode-result {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex: 1;
+            width: 100%;
+        }
+        button,
+        button:active,
+        button[disabled]:hover {
+            --webkit-appearance: none;
+            border: none;
+            border-radius: none;
+            outline: none;
+            font-size: 0.7em;
+            padding: 0.4em 0.6em;
+            margin: 20px;
+            text-transform: uppercase;
+            font-family: 'Open Sans', sans-serif;
+            background: #2ec0cc;
+            color: white;
+        }
+        button:hover {
+            background: #30d0d8;
+        }
+        button[disabled] {
+            opacity: 0.4;
+        }
+        #continue-scanning-button {
+            margin-bottom: 10vh;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>PROTONIC SCANNER</h1>
+    <!-- Containers for the picker and the results -->
+    <div id="scandit-barcode-picker"></div>
+    <div id="scandit-barcode-result">No codes scanned yet</div>
+    <!-- Button to continue scanning after a barcode was scanned -->
+    <button id="continue-scanning-button" onclick="continueScanning()">Continue Scanning</button>
+
+    <script>
+        // Helper function called when the "Continue Scanning" button is clicked
+        function continueScanning() {
+            if (picker) {
+                continueButton.disabled = true;
+                // Resume scanning
+                picker.resumeScanning();
+            }
+        }
+        // Configure the library and activate it with a license key
+        const licenseKey = "AWv8BjztICbOHM7GrgAjOZo2+u5sIIwqkQIunutxqf/ScTrscX3w/JxZ6Q67Qr/bCmYvhtdcWCgZeD2loFu7m2lWEiJvSUUvHWb3TcBNXTlhI/3PBBgURSA5YEdurNgevAlTtsehbCms3OWZhQefflRrvgsN3sWEavASzMKis5kZvCFwySSfWLNrDH/VxeeT3gjlYULys0TDA6oC1zELST38fpYlG2IhoV7yXZ2TgHz6klPwcqv5ph2NhcvwYddHPZIsowYxEZW6CcGzN31sB6QCnpS5B6j4xCdk9OpxZDxiGd0u/BJ5kM2+1OBa/gFB466CuWZV+tWyg/kr4KfjJ4VhVmjncyur2j6w8B16uhWzgBfnrntH+XoVBkwRXf+Ntb4JVGzesoI85XjnMfuFhOH1IWuIsBPk+1hW7fyoTpu8ArPHTOFHqxX6PBU6eF3Cd6KlP6FsbMdhrpSLex8ThaAYS90uVUgUTyCrV3QKyhLX+zZt7jjhxnZylOSqZS5mCUPqBvjCoceIA+GYjuAA2XkNUWOfit3v9E1uJhQfX25YZMSoOoPSuicz9nk1ms/8I4ea3ELKC7ZHAA68NPXOM8IGcBKx0N1lv9kY/gNBxq8dsgxS00FG7amEt0QnyrKmHj9Id5MjZcU8Aj045xQlWsh7Vp3Eu0oJo9EIXMM6Chudwb86ai2kO8Na4bwJRjN/x0ED76VopWehBRlyMOkpb4UizdFUxVn1uwmxSkS1Sr3NYX8Rs5AusXiKMjEQqLjahPk+6/Q6Mr0KI8iOZG9RYIfYPph77FlzVV3o7A==";
+        // const engineLocation = "build"; // the folder containing the engine
+        // or, if using a CDN,
+        const engineLocation = "https://unpkg.com/scandit-sdk/build"
+        ScanditSDK.configure(licenseKey, { engineLocation: engineLocation });
+        const scannerContainer = document.getElementById("scandit-barcode-picker");
+        const resultContainer = document.getElementById("scandit-barcode-result");
+        const continueButton = document.getElementById("continue-scanning-button");
+        continueButton.disabled = true;
+        continueButton.hidden = true;
+        let picker;
+        // Create & start the picker
+        console.log(ScanditSDK.Barcode.Symbology);
+        try {
+        ScanditSDK.BarcodePicker.create(scannerContainer, {
+                playSoundOnScan: true,
+                vibrateOnScan: true,
+            })
+            .then(barcodePicker => {
+                picker = barcodePicker;
+                // Create the settings object to be applied to the scanner
+                const scanSettings = new ScanditSDK.ScanSettings({
+                    enabledSymbologies: ["ean8", "ean13", "upca", "upce", 'code11', "code128", "code39", "code93",
+                        "itf", 'data-matrix', 'qr', 'codabar'],
+                    codeDuplicateFilter: 1000,
+                });
+                ss = scanSettings.getSymbologySettings('data-matrix');
+                ss.setColorInvertedEnabled(true);
+                picker.applyScanSettings(scanSettings);
+                // If a barcode is scanned, show it to the user and pause scanning
+                // (scanning is resumed when the user clicks "Continue Scanning")
+                picker.onScan(scanResult => {
+                    continueButton.hidden = false;
+                    continueButton.disabled = false;
+                    picker.pauseScanning();
+                    resultContainer.innerHTML = scanResult.barcodes.reduce((string, barcode) =>
+                        string +
+                        `${ScanditSDK.Barcode.Symbology.toHumanizedName(barcode.symbology)}: ${barcode.data}<br>`,
+                        '');
+                });
+                picker.onScanError(error => {
+                    alert(error.message);
+                });
+                picker.resumeScanning();
+            })
+            .catch(error => {
+                alert(error);
+            });
+        } catch (err) {
+            alert(err);
+        }
+    </script>
+</body>
+
+</html>
+
+
+
